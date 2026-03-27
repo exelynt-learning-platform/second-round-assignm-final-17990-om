@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useSelector, useDispatch } from 'react-redux';
 import { sendMessage, addUserMessage, clearChat, clearError } from '../features/chat/chatSlice';
 import { Bot, User, Send, Trash2, AlertCircle, X } from 'lucide-react';
@@ -16,12 +17,25 @@ const MessageBubble = memo(({ msg }) => (
     )}
 
     {/* Bubble */}
-    <div className={`max-w-[75%] md:max-w-[65%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words shadow-sm ${
+    <div className={`max-w-[75%] md:max-w-[65%] px-4 py-3 rounded-2xl text-sm leading-relaxed break-words shadow-sm ${
       msg.role === 'user'
         ? 'bg-indigo-600 text-white rounded-br-sm'
         : 'bg-gray-100 text-gray-800 rounded-bl-sm'
     }`}>
-      {msg.content}
+      {msg.role === 'assistant' ? (
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+            strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+            ol: ({ children }) => <ol className="list-decimal ml-4 space-y-1 my-2">{children}</ol>,
+            ul: ({ children }) => <ul className="list-disc ml-4 space-y-1 my-2">{children}</ul>,
+            li: ({ children }) => <li className="leading-snug">{children}</li>,
+            h1: ({ children }) => <h1 className="font-bold text-base mb-1">{children}</h1>,
+            h2: ({ children }) => <h2 className="font-bold text-sm mb-1">{children}</h2>,
+            h3: ({ children }) => <h3 className="font-semibold text-sm mb-1">{children}</h3>,
+          }}
+        >{msg.content}</ReactMarkdown>
+      ) : msg.content}
       <span className={`block text-[10px] mt-1.5 ${msg.role === 'user' ? 'text-indigo-200 text-right' : 'text-gray-400'}`}>
         {msg.timestamp}
       </span>
@@ -133,7 +147,7 @@ const ChatBox = () => {
             <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400 select-none">
               <Bot className="w-12 h-12 text-indigo-200" />
               <p className="text-sm font-medium">Send a message to start chatting</p>
-              <p className="text-xs text-gray-300">Powered by GPT-3.5 Turbo</p>
+              <p className="text-xs text-gray-300">Powered by Custom API</p>
             </div>
           )}
 

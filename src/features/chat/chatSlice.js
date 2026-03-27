@@ -12,44 +12,30 @@ const initialState = {
 // Sends user message to OpenAI API and returns AI reply
 export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
-  async (userText, { rejectWithValue, getState }) => {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-    if (!apiKey) {
-      return rejectWithValue(
-        'API key is not configured. Add VITE_OPENAI_API_KEY to your .env file.'
-      );
-    }
-
+  async (userText, { rejectWithValue }) => {
     try {
-      // Include full conversation history so AI has context
-      const { messages } = getState().chat;
-      const history = messages.map(({ role, content }) => ({ role, content }));
-      history.push({ role: 'user', content: userText });
-
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const API_URL = import.meta.env.DEV
+        ? '/api/Stage/'
+        : 'https://kh7lvyb2b2.execute-api.us-east-1.amazonaws.com/Stage/';
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: history,
-        }),
+        body: JSON.stringify({ prompt: userText }),
       });
 
-      if (response.status === 401)
-        return rejectWithValue('Invalid API key. Please check your VITE_OPENAI_API_KEY in .env.');
-      if (response.status === 429)
-        return rejectWithValue('Rate limit exceeded. Please wait a moment and try again.');
-      if (response.status === 500)
-        return rejectWithValue('OpenAI server error. Please try again later.');
-      if (!response.ok)
+      if (!response.ok) {
         return rejectWithValue(`Request failed: ${response.status} ${response.statusText}`);
+      }
 
       const data = await response.json();
-      return data.choices[0].message.content.trim();
+      // The API returns a stringified JSON in the 'body' property
+      let answer = data.body;
+      if (typeof answer === 'string') {
+        answer = answer.replace(/^"|"$/g, '').replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+      }
+      return answer;
     } catch {
       return rejectWithValue(
         'Network error. Please check your internet connection and try again.'
