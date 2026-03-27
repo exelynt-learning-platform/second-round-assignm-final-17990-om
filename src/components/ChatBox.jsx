@@ -1,12 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useSelector, useDispatch } from 'react-redux';
 import { sendMessage, addUserMessage, clearChat, clearError } from '../features/chat/chatSlice';
 import { Bot, User, Send, Trash2, AlertCircle, X } from 'lucide-react';
 
-// Memoized message bubble — only re-renders if its own data changes
-// This prevents all previous messages from re-rendering when a new one arrives
-const MessageBubble = memo(({ msg }) => (
+const MessageBubble = ({ msg }) => (
   <div className={`flex items-end gap-2 message-animate ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
 
     {/* AI avatar — LEFT */}
@@ -48,7 +46,7 @@ const MessageBubble = memo(({ msg }) => (
       </div>
     )}
   </div>
-));
+);
 
 const ChatBox = () => {
   const [input, setInput] = useState('');
@@ -151,7 +149,6 @@ const ChatBox = () => {
             </div>
           )}
 
-          {/* Each bubble is memoized — only re-renders if its own msg changes */}
           {messages.map((msg) => (
             <MessageBubble key={msg.id} msg={msg} />
           ))}

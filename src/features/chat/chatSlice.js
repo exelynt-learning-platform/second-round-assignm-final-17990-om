@@ -16,7 +16,7 @@ export const sendMessage = createAsyncThunk(
     try {
       const API_URL = import.meta.env.DEV
         ? '/api/Stage/'
-        : 'https://kh7lvyb2b2.execute-api.us-east-1.amazonaws.com/Stage/';
+        : import.meta.env.VITE_API_URL;
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
@@ -30,10 +30,14 @@ export const sendMessage = createAsyncThunk(
       }
 
       const data = await response.json();
-      // The API returns a stringified JSON in the 'body' property
       let answer = data.body;
       if (typeof answer === 'string') {
-        answer = answer.replace(/^"|"$/g, '').replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+        try {
+          const parsed = JSON.parse(answer);
+          answer = typeof parsed === 'string' ? parsed : JSON.stringify(parsed);
+        } catch {
+          answer = answer.trim().replace(/^"|"$/g, '');
+        }
       }
       return answer;
     } catch {
